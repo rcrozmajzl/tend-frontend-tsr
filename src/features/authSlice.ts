@@ -8,6 +8,7 @@ export interface AuthState {
     location: string | null;
     avatar: string | null;
     token: string | null;
+    authorized: boolean;
 }
 
 const initialState: AuthState = {
@@ -16,49 +17,40 @@ const initialState: AuthState = {
     birthdate: null,
     location: null,
     avatar: null,
-    token: null
+    token: null,
+    authorized: false,
 };
 
 export const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
-        setUser: (
+        setAuth: (
             state, 
             action: PayloadAction<{ username: string; email: string; birthdate: string; location: string; avatar: string; token: string }>
         ) => {
-            localStorage.setItem(
-                "user", 
-                JSON.stringify({
-                    username: action.payload.username,
-                    email: action.payload.email,
-                    birthdate: action.payload.birthdate,
-                    location: action.payload.location,
-                    avatar: action.payload.avatar,
-                    token: action.payload.token,
-                })
-            )
             state.username = action.payload.username;
             state.email = action.payload.email;
             state.birthdate = action.payload.birthdate;
             state.location = action.payload.location;
             state.avatar = action.payload.avatar;
             state.token = action.payload.token;
+            state.authorized = true
         },
-        logoutUser: (state) => {
-            localStorage.clear();
+        clearAuth: (state) => {
             state.username = null;
             state.email = null;
             state.birthdate = null;
             state.location = null;
             state.avatar = null;
             state.token = null;
+            state.authorized = false
         },  
     },
 });
 
 export const selectAuth = (state: RootState) => state.auth;
 
-export const { setUser, logoutUser } = authSlice.actions;
+export const { setAuth, clearAuth } = authSlice.actions;
 
 export default authSlice.reducer;

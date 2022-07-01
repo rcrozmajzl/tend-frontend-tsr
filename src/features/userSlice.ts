@@ -1,45 +1,30 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { RootState } from '../app/store';
 
-export interface OtherUsersState {
+export interface Users {
+    id: string | null;
     username: string | null;
     email: string | null;
     birthdate: string | null;
     location: string | null;
     avatar: string | null;
-    loading: boolean | false;
-    error: string | null;
 }
 
-const initialState: OtherUsersState = {
-    username: null,
-    email: null,
-    birthdate: null,
-    location: null,
-    avatar: null,
-    loading: false,
-    error: null
-}
 
-export const otherUsersSlice = createSlice({
+export const usersSlice = createSlice({
     name: "users",
-    initialState,
+    initialState: [] as Users[],
     reducers: {
-        setOtherUsers: (
-            state,
-            action: PayloadAction<{ username: string; email: string; birthdate: string; location: string; avatar: string; loading: boolean; error: any }>
-        ) => {
-            state.username = action.payload.username;
-            state.email = action.payload.email;
-            state.birthdate = action.payload.birthdate;
-            state.location = action.payload.location;
-            state.avatar = action.payload.avatar;
+        setUsers: (state, action) => {
+            if (!!action.payload) {
+                return action.payload
+            }
         }
     },
 });
 
-export const selectOtherUsers = (state: RootState) => state.users;
+export const selectUsers = (state: RootState) => state.users;
 
-export const { setOtherUsers } = otherUsersSlice.actions;
+export const { setUsers } = usersSlice.actions;
 
-export default otherUsersSlice.reducer;
+export default usersSlice.reducer;

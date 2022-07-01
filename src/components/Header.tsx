@@ -2,9 +2,9 @@ import { useState } from 'react'
 // import { Fragment } from 'react';
 // import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../app/hooks';
-import { logoutUser } from '../features/authSlice';
+import { clearAuth } from '../features/authSlice';
 import { toast } from 'react-toastify';
 import { FaDoorClosed, FaSeedling, FaBars, FaTimes } from 'react-icons/fa';
 
@@ -15,15 +15,20 @@ const Header = () => {
     const navigate = useNavigate();
 
 
-    const handleLogout = () => {
-        dispatch(logoutUser());
+    const handleLogout = async () => {
+        dispatch(clearAuth());
+        localStorage.clear();
         toast.success("Log Out Successful");
         navigate("/auth")
     }
 
+    const navToNotifications = () => {
+        navigate("/notifications")
+    }
+
 
     return (
-        <Disclosure as="nav" className="bg-navbar-green">
+        <Disclosure as="nav" className="bg-navbar-green sticky top-0">
             {({ open }) => (
                 <>
                     <div className="mx-auto px-2 sm:px-6 lg:px-8">
@@ -80,6 +85,13 @@ const Header = () => {
                                             >
                                                 my garden
                                             </NavLink>
+
+                                            <NavLink
+                                                to='/needs'
+                                                className={({ isActive }) => (isActive ? 'whitespace-nowrap bg-navlink-green text-white px-3 py-2 rounded-md text-2xl font-bold' : 'whitespace-nowrap text-navlink-green hover:bg-navlink-green hover:opacity-50 hover:text-white bg-white px-3 py-2 rounded-md text-2xl font-bold')}
+                                            >
+                                                needs
+                                            </NavLink>
                                         </div>
                                     </div>
                                 </div>
@@ -88,6 +100,7 @@ const Header = () => {
                                 <button
                                     type="button"
                                     className="shadow-lg bg-navlink-green p-1 rounded-full text-theme-med-grey hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-navlink-green focus:ring-white"
+                                    onClick={() => navToNotifications()}
                                 >
                                     <span className="sr-only">view notifications</span>
                                     <FaSeedling className="h-10 w-10 p-1" aria-hidden="true" />
