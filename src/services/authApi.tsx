@@ -1,7 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { Needs } from '../features/needsSlice';
-import { Users } from '../features/userSlice';
-import { UserNeeds, IUserNeeds } from '../features/userNeedsSlice';
+import { Auth } from '../models/auth.model';
+import { Need } from '../models/need.model';
+import { User } from '../models/user.model';
+import { UserNeed } from '../models/userNeed.model';
 import authHeader from '../helpers/authHeader';
 
 
@@ -12,7 +13,7 @@ export const authApi = createApi ({
     }),
     // tagTypes: ['Auth', 'Need', 'User'],
     endpoints: (builder) => ({
-        loginUser: builder.mutation({
+        loginUser: builder.mutation<Auth, string | object>({
             query: (body: { username: string; password: string }) => ({
                     url: "/auth/login",
                     method: "POST",
@@ -21,7 +22,7 @@ export const authApi = createApi ({
             // invalidatesTags: ['Auth']
         }),
         
-        registerUser: builder.mutation({
+        registerUser: builder.mutation<Auth, string | number | object>({
             query: (body: { username: string; email: string; password: string; birthdate: string; location: string; avatar: string }) => ({
                     url: "/register",
                     method: "POST",
@@ -30,16 +31,17 @@ export const authApi = createApi ({
             // invalidatesTags: ['Auth']
         }),
         
-        updateUser: builder.mutation({
-            query: ({username, email, password, birthdate, location, avatar }) => ({
-                    url: `/user/${username}`,
+        updateUser: builder.mutation<Auth, string | number | object>({
+            query: (body: { id: number; username: string; email: string; password: string; birthdate: string; location: string; avatar: string }) => ({
+                    url: `/users/${body.id}`,
                     method: "PATCH",
                     headers: authHeader(),
+                    body
             }),
             // invalidatesTags: ['Auth']
         }),
 
-        deleteUser: builder.mutation({
+        deleteUser: builder.mutation<Auth, string | number | object>({
             query: () => ({
                 url: "/register",
                 method: "DELETE",
@@ -48,7 +50,7 @@ export const authApi = createApi ({
             // invalidatesTags: ['Auth']
         }),
         
-        fetchUsers: builder.query<Users[], void>({
+        fetchUsers: builder.query<User[], void>({
             query: () => ({
                 url: "/users",
                 method: "GET",
@@ -57,7 +59,7 @@ export const authApi = createApi ({
             // providesTags: ['Auth']
         }),
 
-        fetchNeeds: builder.query<Needs[], void>({
+        fetchNeeds: builder.query<Need[], void>({
             query: () => ({
                 url: "/needs",
                 method: "GET",
@@ -66,16 +68,43 @@ export const authApi = createApi ({
             // providesTags: ['Auth']
         }),
         
-        fetchUserNeeds: builder.query<UserNeeds[], void>({
+        fetchUserNeeds: builder.query<UserNeed[], void>({
             query: () => ({
                 url: "/user_needs",
                 method: "GET",
                 headers: authHeader()
             }),
+        }),
 
+        newUserNeed: builder.mutation<UserNeed, string | number | object>({
+            query: (body: { details_personal: string; rating_importance: number; rating_frequency: number; user_id: number; need_id: number }) => ({
+                url: "/user_needs",
+                method: "POST",
+                body
+            }),
+        }),
+
+        updateUserNeed: builder.mutation<UserNeed, string | number | object>({
+            query: (body: { id: number; details_personal: string; rating_importance: number; rating_frequency: number; user_id: number; need_id: number }) => ({
+                    url: `/user_needs/${body.id}`,
+                    method: "PATCH",
+                    headers: authHeader(),
+                    body
+            }),
+            // invalidatesTags: ['Auth']
+        }),
+    
+        deleteUserNeed: builder.mutation<UserNeed, string | number | object>({
+            query: (body: {id: number}) => ({
+                url: `/user_needs/${body.id}`,
+                method: "DELETE",
+                headers: authHeader(),
+                body
+            }),
+            // invalidatesTags: ['Auth']
         }),
 
     }),
 });
 
-export const { useLoginUserMutation, useRegisterUserMutation, useUpdateUserMutation, useFetchUsersQuery, useFetchNeedsQuery, useFetchUserNeedsQuery } = authApi;
+export const { useLoginUserMutation, useRegisterUserMutation, useUpdateUserMutation, useFetchUsersQuery, useFetchNeedsQuery, useFetchUserNeedsQuery, useNewUserNeedMutation } = authApi;

@@ -12,7 +12,7 @@ export interface Users {
 
 
 export const usersSlice = createSlice({
-    name: "users",
+    name: 'users',
     initialState: [] as Users[],
     reducers: {
         setUsers: (state, action) => {

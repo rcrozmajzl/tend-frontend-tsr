@@ -16,21 +16,21 @@ export const startAuthListening = authMiddleware.startListening({
     // Listen specifically to auth actions setAuth and clearAuth
     matcher: isAnyOf(setAuth, clearAuth),
     effect: async (action, listenerApi) => {
-        listenerApi.unsubscribe()
+        // listenerApi.unsubscribe()
         
-        const authState = (MyStore.getState())
+        const appState = (MyStore.getState())
 
 
         if (setAuth.match(action)) {
             localStorage.setItem(
                 "user",
                 JSON.stringify({
-                    username: authState.auth.username,
-                    email: authState.auth.email,
-                    birthdate: authState.auth.birthdate,
-                    location: authState.auth.location,
-                    avatar: authState.auth.avatar,
-                    token: authState.auth.token,
+                    username: appState.auth.user.username,
+                    email: appState.auth.user.email,
+                    birthdate: appState.auth.user.birthdate,
+                    location: appState.auth.user.location,
+                    avatar: appState.auth.user.avatar,
+                    jwt: appState.auth.jwt,
                 })
             )
         }

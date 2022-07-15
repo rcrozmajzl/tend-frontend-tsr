@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
-import { useAppDispatch } from "../app/hooks";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { FaDoorOpen, FaUserPlus } from 'react-icons/fa';
-import { useLoginUserMutation, useRegisterUserMutation } from "../services/authApi";
+import { authApi, useLoginUserMutation, useRegisterUserMutation } from "../services/authApi";
 import { toast } from 'react-toastify';
-import { setAuth } from "../features/authSlice";
+import { selectAuth, setAuth } from "../features/authSlice";
+import { setUsers } from "../features/userSlice";
+import { setNeeds } from "../features/needsSlice";
+import { setUserNeeds } from "../features/userNeedsSlice";
+import { skipToken } from "@reduxjs/toolkit/dist/query";
 
 
-const initialState = {
+const initialFormState = {
+    id: "",
     username: "",
     email: "",
     password: "",
@@ -15,17 +20,26 @@ const initialState = {
     avatar: ""
 };
 
-const Auth = () => {
-    const [formValue, setFormValue] = useState(initialState);
+const AuthPage = () => {
+    const [formValue, setFormValue] = useState(initialFormState);
 
     const {username, email, password, birthdate, location, avatar} = formValue;
     const [showSignup, setShowSignup] = useState(false);
 
     const dispatch = useAppDispatch();
 
+    const authState = useAppSelector(selectAuth)
+
     const [loginUser, {data: loginData, isSuccess: isLoginSuccess, isError: isLoginError, error: loginError}] = useLoginUserMutation();
     const [registerUser, {data: registerData, isSuccess: isRegisterSuccess, isError: isRegisterError, error: registerError}] = useRegisterUserMutation();
-
+    // const useFetchUsers = authApi.useFetchUsersQuery(authState.authorized ?? skipToken)
+    const useFetchUsersResult = authApi.useFetchUsersQuery().data
+    const useFetchUsersSuccess = authApi.useFetchUsersQuery().isSuccess
+    const useFetchNeedsResult = authApi.useFetchNeedsQuery().data
+    const useFetchNeedsSuccess = authApi.useFetchNeedsQuery().isSuccess
+    const useFetchUserNeedsResult = authApi.useFetchUserNeedsQuery().data
+    const useFetchUserNeedsSuccess = authApi.useFetchUserNeedsQuery().isSuccess
+    
     const handleClick = () => {
         const switchShow = !showSignup
         setShowSignup(switchShow)
@@ -35,9 +49,39 @@ const Auth = () => {
         setFormValue({...formValue, [e.target.name]: e.target.value})
     };
 
-    const handleLogin = async () => {
+    const handleLogin = async (): Promise<void> => {
         if(username && password) {
-            await loginUser({username, password});
+            try {
+                await loginUser({username, password})
+                if(isLoginSuccess && loginData) {
+                    try {
+                        const authData = loginData
+                        toast.success("User Logged In Successfully")
+                        localStorage.setItem(
+                            "user",
+                            JSON.stringify({
+                                id: authData.user.id,
+                                username: authData.user.username,
+                                jwt: authData.jwt,
+                            })
+                        )
+                        try {
+                            if(useFetchUsersSuccess && useFetchNeedsSuccess && useFetchUserNeedsSuccess) {
+                                dispatch(setUsers(useFetchUsersResult))
+                                dispatch(setNeeds(useFetchNeedsResult))
+                                dispatch(setUserNeeds(useFetchUserNeedsResult))
+                            }
+                        } catch (error) {
+                            console.log("Line 70", error)
+                        }
+                        dispatch(setAuth({ user: {id: loginData?.user.id, username: loginData?.user.username, email: loginData?.user.email, birthdate: loginData?.user.birthdate, location: loginData?.user.location, avatar: loginData?.user.avatar}, jwt: loginData?.jwt }))
+                    } catch (error) {
+                        console.log("Line 73", error)
+                    }
+                }
+            } catch (error) {
+                console.log("Line 78", error)
+            }
         } else {
             toast.error("Please fill out all Input fields")
         }
@@ -53,18 +97,18 @@ const Auth = () => {
     };
 
 
-    useEffect(() => {
-        if(isLoginSuccess) {
-            toast.success("User Logged In Successfully");
-            dispatch(setAuth({ username: loginData.user.username, email: loginData.user.email, birthdate: loginData.user.birthdate, location: loginData.user.location, avatar: loginData.user.avatar, token: loginData.jwt }));
-        }
+    // useEffect(() => {
+    //     if(isLoginSuccess && !!loginData) {
+    //         toast.success("User Logged In Successfully");
+    //         dispatch(setAuth({ id: loginData.id, username: loginData?.username, email: loginData?.email, birthdate: loginData?.birthdate, location: loginData?.location, avatar: loginData?.avatar, jwt: loginData?.jwt }));
+    //     }
 
-        if(isRegisterSuccess) {
-            toast.success("Success! Welcome to tend")
-            dispatch(setAuth({ username: registerData.user.username, email: registerData.user.email, birthdate: registerData.user.birthdate, location: registerData.user.location, avatar: registerData.user.avatar, token: registerData.jwt }));
-        }
-        // eslint-disable-next-line
-    }, [isLoginSuccess, isRegisterSuccess])
+    //     if(isRegisterSuccess && !!registerData) {
+    //         toast.success("Success! Welcome to tend")
+    //         dispatch(setAuth({ id: registerData.id, username: registerData.username, email: registerData.email, birthdate: registerData.birthdate, location: registerData.location, avatar: registerData.avatar, jwt: registerData.jwt }));
+    //     }
+    //     // eslint-disable-next-line
+    // }, [isLoginSuccess, isRegisterSuccess])
     
 
     useEffect(() => {
@@ -322,4 +366,4 @@ const Auth = () => {
     )
 };
 
-export default Auth;
+export default AuthPage;

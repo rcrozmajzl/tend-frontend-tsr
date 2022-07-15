@@ -20,3 +20,6 @@ declare module'*jpg' {
     const value: any;
     export = value;
 }
+
+export type PropsWithChildrenOnly = PropsWithChildren<unknown>;
+export type ReactFCWithChildren = React.FC<PropsWithChildrenOnly>;

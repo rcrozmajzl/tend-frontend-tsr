@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from './app/hooks';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Auth from './pages/Auth';
+import AuthPage from './pages/Auth';
 import Header from './components/Header';
 import Greenhouse from './pages/Greenhouse';
 import Profile from './pages/Profile';
@@ -19,6 +19,7 @@ import { selectUsers, setUsers } from './features/userSlice';
 import LoadingToAccess from './components/LoadingtoAccess';
 import { selectUserNeeds, setUserNeeds } from './features/userNeedsSlice';
 import { selectNeeds, setNeeds } from './features/needsSlice';
+import NewUserNeedForm from './pages/NewUserNeedForm';
 
 
 
@@ -32,8 +33,11 @@ function App() {
   const needsState = useAppSelector(selectNeeds)
   const userNeedsState = useAppSelector(selectUserNeeds)
   const useFetchUsersResult = authApi.useFetchUsersQuery().data
+  const useFetchUsersSuccess = authApi.useFetchUsersQuery().isSuccess
   const useFetchNeedsResult = authApi.useFetchNeedsQuery().data
+  const useFetchNeedsSuccess = authApi.useFetchNeedsQuery().isSuccess
   const useFetchUserNeedsResult = authApi.useFetchUserNeedsQuery().data
+  const useFetchUserNeedsSuccess = authApi.useFetchUserNeedsQuery().isSuccess
 
   useEffect(() => {
     if (authState.authorized) {
@@ -45,41 +49,36 @@ function App() {
   }, [authState])
 
   useEffect(() => {
-    if (!!authState.token && !!!currentUser.token) {
+    if (!!authState.jwt && !!!currentUser.jwt) {
       localStorage.setItem(
         "user",
         JSON.stringify({
-            username: authState.username,
-            email: authState.email,
-            birthdate: authState.birthdate,
-            location: authState.location,
-            avatar: authState.avatar,
-            token: authState.token,
+          id: authState.user.id,
+          username: authState.user.username,
+          jwt: authState.jwt,
         })
       )
     }
   }, [authState, currentUser])
 
   useEffect(() => {
-    if (!!!authState.token && authState.authorized)
+    if (!!!authState.jwt && authState.authorized)
       dispatch(clearAuth())
   }, [authState, dispatch])
 
   useEffect(() => {
-    if (!!currentUser.token && !!!authState.token) {
-      dispatch(setAuth({username: currentUser.username, email: currentUser.email, birthdate: currentUser.birthdate, location: currentUser.location, avatar: currentUser.avatar, token: currentUser.token}))
-      console.log("App level auth confirmed")
+    if (!!currentUser.jwt && !!!authState.jwt) {
+      localStorage.clear()
     }
-    // eslint-disable-next-line
   }, [authState, currentUser])
 
   useEffect(() => {
-    if (!!currentUser.token && !!authState.token && usersState.length < 1) {
+    if (!!currentUser.jwt && !!authState.jwt && usersState.length < 1) {
       console.log(useFetchUsersResult)
       dispatch(setUsers(useFetchUsersResult))
     }
     // eslint-disable-next-line
-  }, [currentUser, authState, usersState])
+  }, [currentUser, authState, useFetchUsersSuccess, usersState])
 
   useEffect(() => {
     if(!!!authState.authorized && usersState.length > 1) {
@@ -88,11 +87,11 @@ function App() {
   }, [authState, usersState, dispatch])
   
   useEffect(() => {
-    if(!!authState.token && needsState.length < 1) {
+    if(!!authState.jwt && needsState.length < 1 && useFetchNeedsSuccess) {
       dispatch(setNeeds(useFetchNeedsResult))
     }
     // eslint-disable-next-line
-  }, [authState, needsState, dispatch])
+  }, [authState, useFetchNeedsSuccess, needsState, dispatch])
 
   useEffect(() => {
     if(!!!authState.authorized && needsState.length > 1) {
@@ -101,17 +100,23 @@ function App() {
   }, [authState, needsState, dispatch])
   
   useEffect(() => {
-    if(!!authState.token && userNeedsState.length < 1) {
+    if(!!authState.jwt && userNeedsState.length < 1 && useFetchUserNeedsSuccess) {
       dispatch(setUserNeeds(useFetchUserNeedsResult))
     }
     // eslint-disable-next-line
-  }, [authState, userNeedsState, dispatch])
+  }, [authState, useFetchUserNeedsSuccess, userNeedsState, dispatch])
   
   useEffect(() => {
     if(!!!authState.authorized && userNeedsState.length > 1) {
       dispatch(setUserNeeds([]))
     }
   }, [authState, userNeedsState, dispatch])
+
+  useEffect(() => {
+    if(!!currentUser.jwt && !!authState.jwt) {
+      localStorage.clear()
+    }
+  })
   
 
   return (
@@ -122,7 +127,7 @@ function App() {
             <ToastContainer />
             <Routes>
               <Route path="/" element={<Navigate to="/auth" replace />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth" element={<AuthPage />} />
               <Route path="*" element={<Navigate to="/auth" replace />} />
             </Routes>
           </Router>
@@ -187,6 +192,15 @@ function App() {
                   <PrivateRoute>
                     <Header />
                     <Notifications />
+                  </PrivateRoute>
+                }
+              />
+              <Route 
+                path="/newuserneed" 
+                element={
+                  <PrivateRoute>
+                    <Header />
+                    <NewUserNeedForm />
                   </PrivateRoute>
                 }
               />

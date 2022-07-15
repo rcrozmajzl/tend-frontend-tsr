@@ -4,10 +4,10 @@ import LoadingToRedirect from './LoadingToRedirect';
 import LoadingToAccess from './LoadingtoAccess'
 
 const PrivateRoute = ({ children }: { children: any }) => {
-    const {token} = useSelector(selectAuth);
+    const {jwt} = useSelector(selectAuth);
     
-    return token ? children : <LoadingToRedirect />;
-    // return token ? <LoadingToAccess /> : <LoadingToRedirect />;
+    return jwt ? children : <LoadingToRedirect />;
+    // return jwt ? <LoadingToAccess /> : <LoadingToRedirect />;
 };
 
 export default PrivateRoute;

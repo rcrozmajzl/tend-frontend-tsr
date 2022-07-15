@@ -17,8 +17,8 @@ import Avatar10 from "../assets/avatars/10.png";
 
 function Profile() {
     const currentUserData = useSelector(selectAuth);
-    const { username, email, birthdate, location, avatar } = currentUserData;
-
+    const { username, email, birthdate, location, avatar } = currentUserData.user;
+    console.log(currentUserData)
     const tendAvatar = (avatar: string) => {
         switch(avatar) {
             case '1':
